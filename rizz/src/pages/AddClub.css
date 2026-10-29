@@ -1,0 +1,402 @@
+/* 
+
+
+/* ==============================
+   ADD CLUB PAGE
+============================== */
+
+.add-club-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 35px 20px;
+  background: linear-gradient(135deg, #07152e 0%, #10284b 55%, #09172f 100%);
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #ffffff;
+}
+
+/* ==============================
+   MAIN CARD
+============================== */
+
+.add-club-card {
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 35px;
+  background: #ffffff;
+  color: #17243a;
+  border-radius: 18px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+}
+
+/* ==============================
+   PAGE HEADING
+============================== */
+
+.add-club-card > h1 {
+  margin: 0 0 10px;
+  color: #10284b;
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+}
+
+.add-club-card > p {
+  margin: 0 0 28px;
+  color: #68758a;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ==============================
+   FORM
+============================== */
+
+.add-club-card form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.form-group label {
+  margin-bottom: 9px;
+  color: #182b49;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.form-group input {
+  width: 100%;
+  min-height: 47px;
+  padding: 12px 14px;
+  border: 1px solid #d7deea;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #17243a;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.form-group input::placeholder {
+  color: #9aa5b5;
+}
+
+.form-group input:hover {
+  border-color: #aab8cc;
+}
+
+.form-group input:focus {
+  border-color: #c6a052;
+  box-shadow: 0 0 0 3px rgba(198, 160, 82, 0.17);
+  background: #fffefa;
+}
+
+/* ==============================
+   FORM BUTTONS
+============================== */
+
+.add-club-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 14px;
+  margin-top: 5px;
+}
+
+.add-club-save,
+.add-club-cancel {
+  min-height: 46px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.add-club-save {
+  flex: 1;
+  background: #c6a052;
+  color: #10213b;
+  box-shadow: 0 4px 12px rgba(198, 160, 82, 0.2);
+}
+
+.add-club-save:hover:not(:disabled) {
+  background: #b38a37;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(198, 160, 82, 0.3);
+}
+
+.add-club-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.add-club-cancel {
+  background: #edf1f7;
+  color: #183153;
+  border: 1px solid #dce3ed;
+}
+
+.add-club-cancel:hover {
+  background: #dfe6f0;
+  transform: translateY(-1px);
+}
+
+.back-to-admin-btn {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  background: #10284b;
+  color: #ffffff;
+  border: 1px solid #10284b;
+}
+
+.back-to-admin-btn:hover {
+  background: #1b3b66;
+  color: #ffffff;
+}
+
+/* ==============================
+   CLUB LIST SECTION
+============================== */
+
+.club-list-section {
+  margin-top: 38px;
+  padding-top: 27px;
+  border-top: 1px solid #e5eaf1;
+}
+
+.club-list-section h2 {
+  margin: 0 0 20px;
+  color: #10284b;
+  font-size: 23px;
+  font-weight: 750;
+}
+
+/* ==============================
+   CLUB TABLE
+============================== */
+
+.club-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e0e6ef;
+  border-radius: 11px;
+}
+
+.club-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  background: #ffffff;
+}
+
+.club-table thead {
+  background: #10284b;
+  color: #ffffff;
+}
+
+.club-table th {
+  padding: 15px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.club-table td {
+  padding: 15px 18px;
+  border-bottom: 1px solid #e9edf3;
+  color: #34445c;
+  font-size: 14px;
+}
+
+.club-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.club-table tbody tr:hover {
+  background: #f8f9fc;
+}
+
+.club-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==============================
+   DELETE BUTTON
+============================== */
+
+.club-delete-btn {
+  padding: 8px 16px;
+  border: 1px solid #f0c5c5;
+  border-radius: 7px;
+  background: #fff0f0;
+  color: #bd3030;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.club-delete-btn:hover:not(:disabled) {
+  background: #c83232;
+  color: #ffffff;
+  border-color: #c83232;
+}
+
+.club-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   LOADING AND ERROR MESSAGES
+============================== */
+
+.club-list-section > p {
+  margin: 15px 0;
+  color: #68758a;
+  font-size: 14px;
+}
+
+.club-error {
+  padding: 12px 15px;
+  border: 1px solid #f0caca;
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #b42323 !important;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ==============================
+   TABLET RESPONSIVENESS
+============================== */
+
+@media (max-width: 768px) {
+  .add-club-page {
+    padding: 24px 14px;
+  }
+
+  .add-club-card {
+    padding: 26px 22px;
+    border-radius: 14px;
+  }
+
+  .add-club-card > h1 {
+    font-size: 28px;
+  }
+
+  .add-club-card form {
+    gap: 19px 15px;
+  }
+
+  .club-list-section {
+    margin-top: 30px;
+    padding-top: 23px;
+  }
+
+  .club-list-section h2 {
+    font-size: 21px;
+  }
+}
+
+/* ==============================
+   MOBILE RESPONSIVENESS
+============================== */
+
+@media (max-width: 520px) {
+  .add-club-page {
+    padding: 14px 10px;
+  }
+
+  .add-club-card {
+    padding: 22px 16px;
+    border-radius: 12px;
+  }
+
+  .add-club-card > h1 {
+    font-size: 25px;
+  }
+
+  .add-club-card > p {
+    margin-bottom: 23px;
+    font-size: 14px;
+  }
+
+  .add-club-card form {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
+
+  .form-group input {
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  .add-club-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 3px;
+  }
+
+  .add-club-save,
+  .add-club-cancel {
+    width: 100%;
+    min-height: 45px;
+  }
+
+  .back-to-admin-btn {
+    margin-top: 12px;
+  }
+
+  .club-list-section {
+    margin-top: 28px;
+    padding-top: 22px;
+  }
+
+  .club-list-section h2 {
+    font-size: 20px;
+  }
+
+  .club-table th,
+  .club-table td {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .club-delete-btn {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+}
