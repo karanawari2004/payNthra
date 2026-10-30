@@ -43,6 +43,7 @@ export default function Admin({ onLogout }) {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   
   const handleAddClub = () => {
@@ -170,6 +171,7 @@ export default function Admin({ onLogout }) {
 
   // Reset report form
   const resetForm = () => {
+    setEditingId(null);
     setClubName("");
     setEventDate("");
     setEventEndDate("");
@@ -305,15 +307,21 @@ export default function Admin({ onLogout }) {
 
       console.log("Submitting report:", formData);
 
-      const response = await api.post("/admin", formData);
+      const response = editingId
+        ? await api.put(`/admin/${editingId}`, formData)
+        : await api.post("/admin", formData);
 
       if (response.data?.success) {
         console.log(
-          "Saved report returned by backend:",
-          response.data.report
+          editingId ? "Updated report:" : "Saved report:",
+          response.data.report ?? response.data.data
         );
 
-        alert("Report saved successfully!");
+        alert(
+          editingId
+            ? "Report updated successfully!"
+            : "Report saved successfully!"
+        );
 
         resetForm();
 
@@ -407,6 +415,51 @@ export default function Admin({ onLogout }) {
     }
   };
 
+  // Load an existing report into the form for editing
+  const handleEdit = async (id) => {
+    if (!id) {
+      alert("Report ID is missing.");
+      return;
+    }
+
+    try {
+      const response = await api.get(`/admin/${id}`);
+      const report = response.data?.report ?? response.data?.data;
+
+      if (!response.data?.success || !report) {
+        alert(response.data?.message || "Unable to load report for editing.");
+        return;
+      }
+
+      setEditingId(id);
+      setClubName(report.clubName || "");
+      setEventId(report.eventId || "");
+      setEventDate(report.eventDate ? String(report.eventDate).slice(0, 10) : "");
+      setEventEndDate(
+        report.eventEndDate ? String(report.eventEndDate).slice(0, 10) : ""
+      );
+
+      setTopUps(String(report.topups ?? report.topUps ?? ""));
+      setSales(String(report.sales ?? ""));
+      setDevices(String(report.devices ?? ""));
+      setDays(String(report.days ?? ""));
+      setCard(String(report.card ?? ""));
+      setCash(String(report.cash ?? ""));
+      setUpi(String(report.upi ?? ""));
+      setActivations(String(report.activations ?? ""));
+      setActivationRate(String(report.activationRate ?? ""));
+      setManPower(String(report.manPower ?? ""));
+      setManpowerRate(String(report.manpowerRate ?? ""));
+      setLicenceFeeRate(String(report.licenceFeeRate ?? ""));
+      setGstRate(String(report.gstRate ?? ""));
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      console.error("Edit report error:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Unable to load report for editing.");
+    }
+  };
+
   // Delete report
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
@@ -485,7 +538,7 @@ export default function Admin({ onLogout }) {
 
       <div className="admin-content">
         <form className="admin-form" onSubmit={handleSubmit}>
-          <h2>Create Club Report</h2>
+          <h2>{editingId ? "Update Club Report" : "Create Club Report"}</h2>
 
           {/* CLUB NAME DROPDOWN */}
           <div className="form-group">
@@ -774,8 +827,25 @@ export default function Admin({ onLogout }) {
             className="admin-save-btn"
             disabled={loading}
           >
-            {loading ? "Saving..." : "Save Report"}
+            {loading
+              ? editingId
+                ? "Updating..."
+                : "Saving..."
+              : editingId
+                ? "Update Report"
+                : "Save Report"}
           </button>
+
+          {editingId && (
+            <button
+              type="button"
+              className="history-delete-btn"
+              onClick={resetForm}
+              disabled={loading}
+            >
+              Cancel Update
+            </button>
+          )}
         </form>
 
         {/* REPORT HISTORY */}
@@ -806,6 +876,7 @@ export default function Admin({ onLogout }) {
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>View</th>
+                    <th>Update</th>
                     <th>Delete</th>
                   </tr>
                 </thead>
@@ -825,6 +896,16 @@ export default function Admin({ onLogout }) {
                           onClick={() => handleView(item._id)}
                         >
                           View
+                        </button>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className="history-update-btn"
+                          onClick={() => handleEdit(item._id)}
+                        >
+                          Update
                         </button>
                       </td>
 

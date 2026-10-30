@@ -88,11 +88,11 @@ function AppRoutes() {
       letterSpacing: "2px",
     }}
   >
-    Rizztixx
+      Please Wait...
   </h2>
 
   <p style={{ margin: 0, color: "#c9a96e", fontSize: "14px" }}>
-    Please Wait...
+  
   </p>
 
   <style>
