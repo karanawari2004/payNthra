@@ -1,9 +1,4 @@
-/* 
 
-
-/* ==============================
-   ADD CLUB PAGE
-============================== */
 
 .add-club-page {
   min-height: 100vh;
@@ -15,9 +10,7 @@
   color: #ffffff;
 }
 
-/* ==============================
-   MAIN CARD
-============================== */
+
 
 .add-club-card {
   width: 100%;
@@ -31,9 +24,7 @@
   box-sizing: border-box;
 }
 
-/* ==============================
-   PAGE HEADING
-============================== */
+
 
 .add-club-card > h1 {
   margin: 0 0 10px;
@@ -50,9 +41,7 @@
   line-height: 1.6;
 }
 
-/* ==============================
-   FORM
-============================== */
+
 
 .add-club-card form {
   display: grid;
@@ -105,9 +94,7 @@
   background: #fffefa;
 }
 
-/* ==============================
-   FORM BUTTONS
-============================== */
+
 
 .add-club-actions {
   grid-column: 1 / -1;
@@ -176,9 +163,7 @@
   color: #ffffff;
 }
 
-/* ==============================
-   CLUB LIST SECTION
-============================== */
+
 
 .club-list-section {
   margin-top: 38px;
@@ -193,9 +178,7 @@
   font-weight: 750;
 }
 
-/* ==============================
-   CLUB TABLE
-============================== */
+
 
 .club-table-wrapper {
   width: 100%;
@@ -243,9 +226,7 @@
   border-bottom: none;
 }
 
-/* ==============================
-   DELETE BUTTON
-============================== */
+
 
 .club-delete-btn {
   padding: 8px 16px;
@@ -274,9 +255,7 @@
   cursor: not-allowed;
 }
 
-/* ==============================
-   LOADING AND ERROR MESSAGES
-============================== */
+
 
 .club-list-section > p {
   margin: 15px 0;
@@ -295,9 +274,7 @@
   overflow-wrap: anywhere;
 }
 
-/* ==============================
-   TABLET RESPONSIVENESS
-============================== */
+
 
 @media (max-width: 768px) {
   .add-club-page {
@@ -327,9 +304,7 @@
   }
 }
 
-/* ==============================
-   MOBILE RESPONSIVENESS
-============================== */
+
 
 @media (max-width: 520px) {
   .add-club-page {

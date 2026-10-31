@@ -1,17 +1,13 @@
-
 const Report = require("../model/report");
 const crypto = require("crypto");
-
 
 function generateRefNo() {
   return crypto.randomBytes(12).toString("hex");
 }
 
-
 function roundMoney(amount) {
   return Math.round((amount + Number.EPSILON) * 100) / 100;
 }
-
 
 function hasValue(data, ...keys) {
   return keys.some(
@@ -21,7 +17,6 @@ function hasValue(data, ...keys) {
       data[key] !== ""
   );
 }
-
 
 function getNumber(data, ...keys) {
   for (const key of keys) {
@@ -39,6 +34,7 @@ function getNumber(data, ...keys) {
 }
 
 
+
 function calculateReport(data) {
   const topups = getNumber(data, "topups", "topUps");
   const sales = getNumber(data, "sales");
@@ -48,6 +44,9 @@ function calculateReport(data) {
   const card = getNumber(data, "card");
   const cash = getNumber(data, "cash");
   const upi = getNumber(data, "upi");
+
+  const coverAmount = getNumber(data, "coverAmount");
+  const updateAmount = getNumber(data, "updateAmount");
 
   const activations = getNumber(
     data,
@@ -70,41 +69,52 @@ function calculateReport(data) {
     ? getNumber(data, "gstRate")
     : 18;
 
-  // Calculate amounts
+  
   const activationAmount = roundMoney(
     activations * activationRate
   );
 
+  
   const manpowerAmount = roundMoney(
     manPower * manpowerRate
   );
 
+  
   const breakage = roundMoney(
     topups - sales - activationAmount
   );
+
 
   const licenceFee = roundMoney(
     topups * (licenceFeeRate / 100)
   );
 
+  
   const paymentsTotal = roundMoney(
-    card  + upi
+    card + upi + updateAmount
   );
 
+  
   const subTotal = roundMoney(
-    licenceFee + activationAmount + manpowerAmount
+    licenceFee +
+    activationAmount +
+    manpowerAmount 
+    
   );
 
+  
   const gst = roundMoney(
     subTotal * (gstRate / 100)
   );
 
+  
   const invoiceTotal = roundMoney(
     subTotal + gst
   );
 
+
   const payable = roundMoney(
-    topups - cash - invoiceTotal
+    topups - cash - invoiceTotal - coverAmount
   );
 
   return {
@@ -112,26 +122,38 @@ function calculateReport(data) {
     sales,
     devices,
     days,
+
     card,
     cash,
     upi,
+
+    coverAmount,
+    updateAmount,
+
     activations,
     activationRate,
     activationAmount,
+
     manPower,
     manpowerRate,
     manpowerAmount,
+
     breakage,
+
     licenceFeeRate,
     licenceFee,
+
     paymentsTotal,
+
     subTotal,
     gstRate,
     gst,
     invoiceTotal,
+
     payable,
   };
 }
+
 
 
 function validateInput(body) {
@@ -183,6 +205,8 @@ function validateInput(body) {
     ["card"],
     ["cash"],
     ["upi"],
+    ["coverAmount"],
+    ["updateAmount"],
     ["activations", "activationCount"],
     ["manPower", "manpowerCount", "manpower"],
     ["activationRate"],
@@ -192,22 +216,19 @@ function validateInput(body) {
   ];
 
   for (const keys of numericFields) {
-    const [field, ...aliases] = keys;
+    const [field] = keys;
 
-    
-    if (
-      field === "gstRate" &&
-      !hasValue(body, "gstRate")
-    ) {
+    if (field === "gstRate" && !hasValue(body, "gstRate")) {
       continue;
     }
 
     if (!hasValue(body, ...keys)) {
-      
       if (
-        ["activationRate", "manpowerRate", "licenceFeeRate"].includes(
-          field
-        )
+        [
+          "activationRate",
+          "manpowerRate",
+          "licenceFeeRate",
+        ].includes(field)
       ) {
         return `${field} is required`;
       }
@@ -223,6 +244,7 @@ function validateInput(body) {
   }
 
   const devices = getNumber(body, "devices");
+
   const days = hasValue(body, "days")
     ? getNumber(body, "days")
     : 1;
@@ -273,17 +295,20 @@ function validateInput(body) {
   return null;
 }
 
-// Prepare report fields and calculate all amounts
+
+
 function prepareReportData(body, refNo = generateRefNo()) {
   const inputData = {
     clubName: String(body.clubName || "").trim(),
     eventId: String(body.eventId || "").trim(),
+
     eventDate: body.eventDate ?? body.eventStartDate,
     eventEndDate: body.eventEndDate,
 
     topups: getNumber(body, "topups", "topUps"),
     sales: getNumber(body, "sales"),
     devices: getNumber(body, "devices"),
+
     days: hasValue(body, "days")
       ? getNumber(body, "days")
       : 1,
@@ -291,6 +316,9 @@ function prepareReportData(body, refNo = generateRefNo()) {
     card: getNumber(body, "card"),
     cash: getNumber(body, "cash"),
     upi: getNumber(body, "upi"),
+
+    coverAmount: getNumber(body, "coverAmount"),
+    updateAmount: getNumber(body, "updateAmount"),
 
     activations: getNumber(
       body,
@@ -324,11 +352,11 @@ function prepareReportData(body, refNo = generateRefNo()) {
 }
 
 
+
 exports.createAdminData = async (req, res) => {
   try {
     console.log("Received report input:", req.body);
 
-    
     const inputError = validateInput(req.body);
 
     if (inputError) {
@@ -346,13 +374,9 @@ exports.createAdminData = async (req, res) => {
       reportId: report._id,
       clubName: report.clubName,
       eventId: report.eventId,
-      activationRate: report.activationRate,
-      activationAmount: report.activationAmount,
-      manpowerRate: report.manpowerRate,
-      manpowerAmount: report.manpowerAmount,
-      licenceFeeRate: report.licenceFeeRate,
-      licenceFee: report.licenceFee,
-      gstRate: report.gstRate,
+      coverAmount: report.coverAmount,
+      updateAmount: report.updateAmount,
+      subTotal: report.subTotal,
       gst: report.gst,
       invoiceTotal: report.invoiceTotal,
       payable: report.payable,
@@ -376,6 +400,7 @@ exports.createAdminData = async (req, res) => {
 };
 
 
+
 exports.getAdminData = async (req, res) => {
   try {
     const reports = await Report.find().sort({
@@ -396,6 +421,7 @@ exports.getAdminData = async (req, res) => {
     });
   }
 };
+
 
 
 exports.getAdminDataById = async (req, res) => {
@@ -431,6 +457,7 @@ exports.getAdminDataById = async (req, res) => {
     });
   }
 };
+
 
 
 exports.updateAdminData = async (req, res) => {
@@ -495,6 +522,16 @@ exports.updateAdminData = async (req, res) => {
         req.body.gstRate ??
         existingReport.gstRate ??
         18,
+
+      coverAmount:
+        req.body.coverAmount ??
+        existingReport.coverAmount ??
+        0,
+
+      updateAmount:
+        req.body.updateAmount ??
+        existingReport.updateAmount ??
+        0,
     };
 
     const inputError = validateInput(mergedInput);
@@ -511,15 +548,14 @@ exports.updateAdminData = async (req, res) => {
       existingReport.refNo
     );
 
-    const updatedReport = await Report.findByIdAndUpdate(
-      id,
-      reportData,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
+   const updatedReport = await Report.findByIdAndUpdate(
+  id,
+  reportData,
+  {
+    returnDocument: "after",
+    runValidators: true,
+  }
+);
     return res.status(200).json({
       success: true,
       message: "Report updated successfully",
@@ -536,6 +572,7 @@ exports.updateAdminData = async (req, res) => {
     });
   }
 };
+
 
 
 exports.deleteAdminData = async (req, res) => {

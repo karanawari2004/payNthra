@@ -40,6 +40,18 @@ const reportSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    
+    
+    coverAmount: {
+  type: Number,
+  default: 0,
+},
+
+updateAmount: {
+  type: Number,
+  default: 0,
+},
+
 
     sales: {
       type: Number,

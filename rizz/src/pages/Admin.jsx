@@ -7,27 +7,26 @@ import "./Admin.css";
 export default function Admin({ onLogout }) {
   const navigate = useNavigate();
 
-  
   const [clubName, setClubName] = useState("");
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(false);
 
-  
   const [eventDate, setEventDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
   const [eventId, setEventId] = useState("");
 
-  
   const [topUps, setTopUps] = useState("");
   const [sales, setSales] = useState("");
   const [devices, setDevices] = useState("");
   const [days, setDays] = useState("");
 
-  
   const [card, setCard] = useState("");
   const [cash, setCash] = useState("");
   const [upi, setUpi] = useState("");
 
+
+  const [coverAmount, setCoverAmount] = useState("");
+  const [updateAmount, setUpdateAmount] = useState("");
 
   const [activations, setActivations] = useState("");
   const [activationRate, setActivationRate] = useState("");
@@ -35,11 +34,9 @@ export default function Admin({ onLogout }) {
   const [manPower, setManPower] = useState("");
   const [manpowerRate, setManpowerRate] = useState("");
 
-  
   const [licenceFeeRate, setLicenceFeeRate] = useState("");
   const [gstRate, setGstRate] = useState("");
 
-  
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -50,7 +47,7 @@ export default function Admin({ onLogout }) {
     navigate("/add-club");
   };
 
-  
+
   const fetchClubs = useCallback(async () => {
     try {
       setClubsLoading(true);
@@ -59,10 +56,13 @@ export default function Admin({ onLogout }) {
 
       if (response.data?.success) {
         setClubs(
-          Array.isArray(response.data.data) ? response.data.data : []
+          Array.isArray(response.data.data)
+            ? response.data.data
+            : []
         );
       } else {
         setClubs([]);
+
         console.error(
           "Unable to fetch clubs:",
           response.data?.message
@@ -84,7 +84,7 @@ export default function Admin({ onLogout }) {
     fetchClubs();
   }, [fetchClubs]);
 
-  // Automatically populate rates when a club is selected
+  
   const handleClubChange = (e) => {
     const selectedClubName = e.target.value;
 
@@ -107,6 +107,7 @@ export default function Admin({ onLogout }) {
     }
   };
 
+  
   const handleLogout = async () => {
     try {
       await api.post("/logout");
@@ -128,7 +129,7 @@ export default function Admin({ onLogout }) {
     }
   };
 
-  // Fetch report history
+  
   const fetchHistory = useCallback(async () => {
     try {
       setHistoryLoading(true);
@@ -169,7 +170,7 @@ export default function Admin({ onLogout }) {
     fetchHistory();
   }, [fetchHistory]);
 
-  // Reset report form
+  
   const resetForm = () => {
     setEditingId(null);
     setClubName("");
@@ -186,6 +187,10 @@ export default function Admin({ onLogout }) {
     setCash("");
     setUpi("");
 
+    
+    setCoverAmount("");
+    setUpdateAmount("");
+
     setActivations("");
     setActivationRate("");
 
@@ -196,7 +201,7 @@ export default function Admin({ onLogout }) {
     setGstRate("");
   };
 
-  // Create report
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -247,6 +252,10 @@ export default function Admin({ onLogout }) {
       card: Number(card || 0),
       cash: Number(cash || 0),
       upi: Number(upi || 0),
+
+      // NEW FIELDS
+      coverAmount: Number(coverAmount || 0),
+      updateAmount: Number(updateAmount || 0),
 
       activations: Number(activations || 0),
       activationRate: Number(activationRate),
@@ -344,7 +353,7 @@ export default function Admin({ onLogout }) {
     }
   };
 
-  // Format date
+
   const formatDate = (date) => {
     if (!date) return "-";
 
@@ -375,7 +384,7 @@ export default function Admin({ onLogout }) {
     });
   };
 
-  // View selected report
+  
   const handleView = async (id) => {
     if (!id) {
       alert("Report ID is missing.");
@@ -415,7 +424,7 @@ export default function Admin({ onLogout }) {
     }
   };
 
-  // Load an existing report into the form for editing
+  
   const handleEdit = async (id) => {
     if (!id) {
       alert("Report ID is missing.");
@@ -446,6 +455,11 @@ export default function Admin({ onLogout }) {
       setCard(String(report.card ?? ""));
       setCash(String(report.cash ?? ""));
       setUpi(String(report.upi ?? ""));
+
+      // NEW FIELDS
+      setCoverAmount(String(report.coverAmount ?? ""));
+      setUpdateAmount(String(report.updateAmount ?? ""));
+
       setActivations(String(report.activations ?? ""));
       setActivationRate(String(report.activationRate ?? ""));
       setManPower(String(report.manPower ?? ""));
@@ -460,7 +474,7 @@ export default function Admin({ onLogout }) {
     }
   };
 
-  // Delete report
+  
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this report?"
@@ -540,7 +554,7 @@ export default function Admin({ onLogout }) {
         <form className="admin-form" onSubmit={handleSubmit}>
           <h2>{editingId ? "Update Club Report" : "Create Club Report"}</h2>
 
-          {/* CLUB NAME DROPDOWN */}
+        
           <div className="form-group">
             <label htmlFor="clubName">Club Name</label>
 
@@ -569,7 +583,7 @@ export default function Admin({ onLogout }) {
             )}
           </div>
 
-          {/* EVENT DETAILS */}
+          
           <div className="form-group">
             <label htmlFor="eventId">Event ID</label>
 
@@ -714,6 +728,36 @@ export default function Admin({ onLogout }) {
             />
           </div>
 
+          
+          <div className="form-group">
+            <label htmlFor="coverAmount">Cover Amount</label>
+
+            <input
+              type="number"
+              id="coverAmount"
+              min="0"
+              step="0.01"
+              value={coverAmount}
+              onChange={(e) => setCoverAmount(e.target.value)}
+              placeholder="Enter cover amount"
+            />
+          </div>
+
+          
+          <div className="form-group">
+            <label htmlFor="updateAmount">Update Amount</label>
+
+            <input
+              type="number"
+              id="updateAmount"
+              min="0"
+              step="0.01"
+              value={updateAmount}
+              onChange={(e) => setUpdateAmount(e.target.value)}
+              placeholder="Enter update amount"
+            />
+          </div>
+
           <hr />
 
           <h3>Activation &amp; Manpower Details</h3>
@@ -848,7 +892,7 @@ export default function Admin({ onLogout }) {
           )}
         </form>
 
-        {/* REPORT HISTORY */}
+        
         <section className="history-section">
           <div className="history-heading">
             <h2>Report History</h2>

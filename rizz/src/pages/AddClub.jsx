@@ -20,7 +20,7 @@ export default function AddClub() {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
 
-  // RESET FORM
+  
   const resetForm = () => {
     setEditingId(null);
     setClubName("");
@@ -30,7 +30,7 @@ export default function AddClub() {
     setGstRate("");
   };
 
-  // GET ALL CLUBS
+
   const fetchClubs = useCallback(async () => {
     try {
       setError("");
@@ -58,7 +58,7 @@ export default function AddClub() {
     fetchClubs();
   }, [fetchClubs]);
 
-  // ADD OR UPDATE CLUB
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -109,10 +109,10 @@ export default function AddClub() {
       let response;
 
       if (isEditing) {
-        // UPDATE EXISTING CLUB
+        
         response = await api.put(`/clubs/${editingId}`, clubData);
       } else {
-        // ADD NEW CLUB
+      
         response = await api.post("/clubs", clubData);
       }
 
@@ -140,7 +140,7 @@ export default function AddClub() {
     }
   };
 
-  // SELECT CLUB FOR UPDATE
+  
   const handleEdit = (club) => {
     setEditingId(club._id);
 
@@ -156,7 +156,7 @@ export default function AddClub() {
     });
   };
 
-  // DELETE CLUB
+  
   const handleDelete = async (id, name) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${name}"?`
@@ -207,7 +207,7 @@ export default function AddClub() {
             : "Enter the details of your new club."}
         </p>
 
-        {/* CLUB FORM */}
+        
         <form onSubmit={handleSubmit}>
 
           <div className="form-group">
@@ -285,7 +285,7 @@ export default function AddClub() {
             />
           </div>
 
-          {/* BUTTONS */}
+          
           <div className="add-club-actions">
 
             <button
@@ -324,7 +324,7 @@ export default function AddClub() {
           </div>
         </form>
 
-        {/* CLUB LIST */}
+        
         <div className="club-list-section">
 
           <h2>Club List</h2>

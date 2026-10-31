@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
@@ -10,599 +9,590 @@ export default function Report({ onLogout }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Get report directly from backend response
   const report = location.state?.report;
 
   const [downloading, setDownloading] = useState(false);
+  const [downloadDateTime, setDownloadDateTime] = useState(null);
 
-  
+  // =====================================
+  // FORMAT FUNCTIONS
+  // =====================================
+
   const formatMoney = (value) => {
-    if (value === undefined || value === null || value === "") {
-      return "-";
-    }
-
-    const amount = Number(value);
-
-    if (!Number.isFinite(amount)) {
-      return "-";
-    }
-
-    return amount.toLocaleString("en-IN", {
+    return `₹${Number(value ?? 0).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })}`;
   };
 
-  
-  const formatDate = (value) => {
-    if (!value) return "-";
+  const formatDate = (date) => {
+    if (!date) return "-";
 
-    const dateString = String(value);
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      const [year, month, day] = dateString.split("-");
-
-      const monthName = new Date(
-        `${dateString}T00:00:00`
-      ).toLocaleDateString("en-IN", {
-        month: "short",
-      });
-
-      return `${day} ${monthName} ${year}`;
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return dateString;
-    }
-
-    return date.toLocaleDateString("en-IN", {
+    return new Date(date).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
   };
 
-  // Print report
+  const formatDateTime = (date) => {
+    if (!date) return "-";
+
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // =====================================
+  // PRINT REPORT
+  // =====================================
+
   const handlePrint = () => {
     window.print();
   };
 
-  // Download PDF
+  // =====================================
+  // DOWNLOAD PDF
+  // =====================================
+
   const handleDownloadPDF = async () => {
-    const reportElement = document.getElementById("report-content");
+    const reportElement = document.querySelector(".payslip");
 
-    if (!reportElement) {
-      alert("Report content not found.");
-      return;
-    }
-
-    let pdfClone;
+    if (!reportElement) return;
 
     try {
       setDownloading(true);
 
-      const downloadDateTime = new Date().toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
+      // Set current download date and time
+      const currentDateTime = new Date();
+      setDownloadDateTime(currentDateTime);
+
+      // Wait for React to update the footer
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
       });
 
-      const safeClubName = String(report.clubName || "Club-Report")
-        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
-        .trim();
-
-      const safeDateRange = String(dateRange || "Report").replace(
-        /\s+/g,
-        "-"
-      );
-
-      pdfClone = reportElement.cloneNode(true);
-
-      pdfClone.removeAttribute("id");
-
-      Object.assign(pdfClone.style, {
-        width: "460px",
-        maxWidth: "460px",
-        margin: "0",
-        padding: "20px 18px 16px",
-        position: "fixed",
-        left: "-10000px",
-        top: "0",
-        background: "#ffffff",
-        boxSizing: "border-box",
-        height: "auto",
-        overflow: "visible",
-      });
-
-      const downloadInfo = document.createElement("div");
-
-      downloadInfo.className = "pdf-download-info";
-      downloadInfo.textContent = `Downloaded on: ${downloadDateTime}`;
-
-      Object.assign(downloadInfo.style, {
-        display: "block",
-        width: "100%",
-        marginTop: "8px",
-        paddingTop: "6px",
-        textAlign: "center",
-        fontSize: "9px",
-        lineHeight: "1.5",
-        color: "#555",
-        background: "#ffffff",
-        boxSizing: "border-box",
-      });
-
-      pdfClone.appendChild(downloadInfo);
-      document.body.appendChild(pdfClone);
-
-      const images = Array.from(pdfClone.querySelectorAll("img"));
-
-      await Promise.all(
-        images.map((img) => {
-          if (img.complete && img.naturalWidth > 0) {
-            return Promise.resolve();
-          }
-
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        })
-      );
-
-      const canvas = await html2canvas(pdfClone, {
+      const canvas = await html2canvas(reportElement, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 520,
       });
 
-      const imageData = canvas.toDataURL("image/jpeg", 0.98);
+      const imageData = canvas.toDataURL("image/png");
 
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
+      const pdf = new jsPDF("p", "mm", "a4");
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      const margin = 7;
-      const availableWidth = pageWidth - margin * 2;
-      const availableHeight = pageHeight - margin * 2;
+      const imageHeight = (canvas.height * pageWidth) / canvas.width;
 
-      const scale = Math.min(
-        availableWidth / canvas.width,
-        availableHeight / canvas.height
-      );
-
-      const imageWidth = canvas.width * scale;
-      const imageHeight = canvas.height * scale;
-
-      const x = (pageWidth - imageWidth) / 2;
-      const y = (pageHeight - imageHeight) / 2;
+      const finalHeight = Math.min(imageHeight, pageHeight);
 
       pdf.addImage(
         imageData,
-        "JPEG",
-        x,
-        y,
-        imageWidth,
-        imageHeight,
-        undefined,
-        "FAST"
+        "PNG",
+        0,
+        0,
+        pageWidth,
+        finalHeight
       );
 
-      pdf.save(`${safeClubName}-${safeDateRange}.pdf`);
-    } catch (error) {
-      console.error("PDF download failed:", error);
-      alert("Unable to download the PDF. Please try again.");
-    } finally {
-      if (pdfClone?.parentNode) {
-        pdfClone.parentNode.removeChild(pdfClone);
-      }
+      pdf.save(`${report.clubName || "Club"}-Report.pdf`);
 
+    } catch (error) {
+      console.error("PDF download error:", error);
+      alert("Unable to download PDF. Please try again.");
+    } finally {
       setDownloading(false);
     }
   };
 
-  
+  // =====================================
+  // LOGOUT
+  // =====================================
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      navigate("/login");
+    }
+  };
+
+  // =====================================
+  // REPORT NOT FOUND
+  // =====================================
+
   if (!report) {
     return (
-      <div className="report-page">
-        <header className="report-header no-print">
-          <h2>Club Management</h2>
+      <div className="report-empty">
+        <h2>Report Not Found</h2>
 
-          <Link to="/admin" className="report-back-link">
-            Back to Admin
-          </Link>
-        </header>
+        <p>Please select a report from the Admin Panel.</p>
 
-        <main className="report-empty">
-          <h2>No Report Selected</h2>
-
-          <p>Please open a report from the Admin Panel.</p>
-
-          <button
-            type="button"
-            onClick={() => navigate("/admin")}
-          >
-            Go to Admin Panel
-          </button>
-        </main>
+        <Link to="/admin">
+          Back to Admin Panel
+        </Link>
       </div>
     );
   }
 
-  // Event dates
-  const eventStart =
-    report.eventDate ||
-    report.fromDate ||
-    report.startDate ||
-    report.dateFrom;
+  // =====================================
+  // BACKEND REPORT VALUES
+  // =====================================
 
-  const eventEnd =
-    report.eventEndDate ||
-    report.toDate ||
-    report.endDate ||
-    report.dateTo;
+  const {
+    clubName,
+    eventId,
+    eventDate,
+    eventEndDate,
+
+    topups,
+    sales,
+    devices,
+    days,
+
+    card,
+    cash,
+    upi,
+
+    coverAmount,
+    updateAmount,
+
+    activations,
+    activationRate,
+    activationAmount,
+
+    manPower,
+    manpowerRate,
+    manpowerAmount,
+
+    breakage,
+
+    licenceFeeRate,
+    licenceFee,
+
+    paymentsTotal,
+
+    subTotal,
+    gstRate,
+    gst,
+    invoiceTotal,
+
+    payable,
+
+    refNo,
+  } = report;
 
   const dateRange =
-    eventStart && eventEnd
-      ? `${formatDate(eventStart)} to ${formatDate(eventEnd)}`
-      : formatDate(eventStart || eventEnd);
+    eventDate && eventEndDate
+      ? `${formatDate(eventDate)} - ${formatDate(eventEndDate)}`
+      : formatDate(eventDate);
 
-  
-  const toNumber = (value, fallback = 0) => {
-    if (value === undefined || value === null || value === "") {
-      return fallback;
-    }
-
-    const number = Number(value);
-
-    return Number.isFinite(number) ? number : fallback;
-  };
-
-  
-  const roundMoney = (amount) =>
-    Math.round((amount + Number.EPSILON) * 100) / 100;
-
-  // Quantities
-  const activations = toNumber(
-    report.activations ?? report.activationQuantity
-  );
-
-  const manPower = toNumber(
-    report.manPower ??
-      report.manpower ??
-      report.manPowerQuantity
-  );
-
-  
-  const activationRate = toNumber(report.activationRate);
-  const manpowerRate = toNumber(
-    report.manpowerRate ?? report.manPowerRate
-  );
-  const licenceFeeRate = toNumber(report.licenceFeeRate);
-  const gstRate = toNumber(report.gstRate, 18);
-
-  
-  const topups = toNumber(report.topups ?? report.topUps);
-  const sales = toNumber(report.sales);
-  const card = toNumber(report.card);
-  const cash = toNumber(report.cash);
-  const upi = toNumber(report.upi);
-
-  
-  console.log("Report ID:", report._id);
-  console.log("Report rates from selected MongoDB record:", {
-    activationRate,
-    manpowerRate,
-    licenceFeeRate,
-    gstRate,
-  });
-
-
-  const activationAmount = roundMoney(
-    activations * activationRate
-  );
-
-  const manpowerAmount = roundMoney(
-    manPower * manpowerRate
-  );
-
-  const licenceFee = roundMoney(
-    topups * (licenceFeeRate / 100)
-  );
-
-  const paymentsTotal = roundMoney(
-    report.paymentsTotal ??
-      report.subTotalPayments ??
-      card + cash + upi
-  );
-
-  const subTotal = roundMoney(
-    licenceFee + activationAmount + manpowerAmount
-  );
-
-  const gst = roundMoney(subTotal * (gstRate / 100));
-
-  const invoiceTotal = roundMoney(subTotal + gst);
-
-  const payable = roundMoney(topups - cash - invoiceTotal);
-
-  // Summary
-  const summaryItems = [
-    {
-      label: "TOPUPS",
-      value: topups,
-    },
-    {
-      label: "SALES",
-      value: sales,
-    },
-    {
-      label: "DEVICES",
-      value: report.devices,
-      money: false,
-    },
-    {
-      label: "DAYS",
-      value: report.days,
-      money: false,
-    },
-    {
-      label: "BREAKAGE",
-      value:
-        report.breakage ??
-        roundMoney(topups - sales - activationAmount),
-      description:
-        report.breakageDescription ||
-        "Topups - Sales - Activation Amount",
-    },
-  ];
-
-  
-  const paymentItems = [
-    {
-      label: "CARD",
-      value: card,
-    },
-    {
-      label: "CASH (HANDOVER)",
-      value: cash,
-    },
-    {
-      label: "UPI",
-      value: upi,
-    },
-    {
-      label: "SUB TOTAL",
-      value: paymentsTotal,
-      total: true,
-    },
-    {
-      label: "TOTAL",
-      value: paymentsTotal,
-      total: true,
-    },
-  ];
-
-  
-  const invoiceItems = [
-    {
-      label: "LICENCE FEE",
-      value: licenceFee,
-      description: `${licenceFeeRate}% of Total Topups`,
-    },
-    {
-      label: "ACTIVATIONS",
-      value: activationAmount,
-      description: `${activations} activations × ₹${activationRate.toLocaleString(
-        "en-IN",
-        {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 3,
-        }
-      )} per activation`,
-    },
-    {
-      label: "MANPOWER",
-      value: manpowerAmount,
-      description: `${manPower} manpower × ₹${manpowerRate.toLocaleString(
-        "en-IN",
-        {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }
-      )} per manpower`,
-    },
-    {
-      label: "SUB TOTAL",
-      value: subTotal,
-      total: true,
-    },
-    {
-      label: "GST",
-      value: gst,
-      description: `${gstRate}% of Subtotal`,
-    },
-    {
-      label: "TOTAL",
-      value: invoiceTotal,
-      total: true,
-    },
-  ];
-
-  
-  const renderAmount = (item) => {
-    if (
-      item.value === undefined ||
-      item.value === null ||
-      item.value === ""
-    ) {
-      return "-";
-    }
-
-    return item.money === false
-      ? item.value
-      : formatMoney(item.value);
-  };
+  // =====================================
+  // RENDER REPORT
+  // =====================================
 
   return (
     <div className="report-page">
-      <header className="report-header no-print">
+
+      {/* HEADER */}
+
+      <div className="report-header">
+
         <h2>Club Management</h2>
 
-        <nav className="report-actions">
-          <Link to="/admin">Admin Panel</Link>
+        <div className="report-actions">
 
-          <button type="button" onClick={handlePrint}>
+          <Link to="/admin" className="report-btn">
+            Admin Panel
+          </Link>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="report-btn"
+          >
             Print Report
           </button>
 
           <button
             type="button"
             onClick={handleDownloadPDF}
+            className="report-btn"
             disabled={downloading}
           >
-            {downloading ? "Preparing PDF..." : "Download PDF"}
+            {downloading ? "Downloading..." : "Download PDF"}
           </button>
 
-          {onLogout && (
-            <button type="button" onClick={onLogout}>
-              Logout
-            </button>
-          )}
-        </nav>
-      </header>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="report-btn"
+          >
+            Logout
+          </button>
 
-      <main id="report-content" className="payslip">
+        </div>
+      </div>
+
+      {/* PAYSLIP */}
+
+      <div className="payslip">
+
+        {/* BRAND */}
+
         <div className="payslip-brand">
-          <div className="combined-logo">
-            <div className="paynthra-name">PayNthra</div>
+
+          <div className="atomx-text-logo">
+
+            <span className="atomx-name">
+              PayNthra
+            </span>
+
+            <span className="atomx-highlight">
+              atomx
+            </span>
+
           </div>
+
         </div>
 
-        <h1 className="payslip-heading">PAYSLIP</h1>
+        {/* REPORT HEADING */}
 
-        <div className="payslip-club">
-          {report.clubName || "Club Report"}
+        <div className="payslip-heading">
+
+          <h2>PAYSLIP</h2>
+
+          <h3 className="payslip-club">
+            {clubName}
+          </h3>
+
+          <p className="payslip-date">
+            {dateRange}
+          </p>
+
+          <p className="report-description">
+            Event ID: {eventId || "-"}
+          </p>
+
         </div>
 
-        <div className="payslip-date">{dateRange}</div>
+        {/* SUMMARY */}
 
         <table className="payslip-table">
+
           <thead>
-            <tr className="table-heading">
-              <th>SUMMARY</th>
-              <th>AMOUNT</th>
+            <tr>
+              <th colSpan="2" className="table-heading">
+                SUMMARY
+              </th>
             </tr>
           </thead>
 
           <tbody>
-            {summaryItems.map((item) => (
-              <tr key={item.label}>
-                <td>
-                  <div className="report-label">{item.label}</div>
 
-                  {item.description && (
-                    <div className="report-description">
-                      {item.description}
-                    </div>
-                  )}
-                </td>
-
-                <td className="report-amount">
-                  {renderAmount(item)}
-                </td>
-              </tr>
-            ))}
-
-            <tr className="section-heading">
-              <th colSpan="2">AMOUNT WITH payNthra</th>
-            </tr>
-
-            {paymentItems.map((item) => (
-              <tr
-                key={item.label}
-                className={item.total ? "bold-row" : ""}
-              >
-                <td>{item.label}</td>
-
-                <td className="report-amount">
-                  {renderAmount(item)}
-                </td>
-              </tr>
-            ))}
-
-            <tr className="section-heading">
-              <th colSpan="2">INVOICE</th>
-            </tr>
-
-            {invoiceItems.map((item) => (
-              <tr
-                key={item.label}
-                className={item.total ? "bold-row" : ""}
-              >
-                <td>
-                  <div className="report-label">{item.label}</div>
-
-                  {item.description && (
-                    <div className="report-description">
-                      {item.description}
-                    </div>
-                  )}
-                </td>
-
-                <td className="report-amount">
-                  {renderAmount(item)}
-                </td>
-              </tr>
-            ))}
-
-            <tr className="payable-row">
-              <td>PAYABLE</td>
+            <tr>
+              <td className="report-label">
+                TOPUPS
+              </td>
 
               <td className="report-amount">
-                {renderAmount({ value: payable })}
+                {formatMoney(topups)}
               </td>
             </tr>
+
+            <tr>
+              <td className="report-label">
+                SALES
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(sales)}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="report-label">
+                DEVICES
+              </td>
+
+              <td className="report-amount">
+                {devices ?? 0}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="report-label">
+                DAYS
+              </td>
+
+              <td className="report-amount">
+                {days ?? 0}
+              </td>
+            </tr>
+
+            {/* BREAKAGE */}
+
+            <tr className="bold-row">
+              <td className="report-label">
+                BREAKAGE
+
+                <small
+                  style={{
+                    fontSize: "8px",
+                    fontWeight: "400",
+                    marginLeft: "4px",
+                  }}
+                >
+                  (TOPUPS - SALES - ACTIVATION AMOUNT)
+                </small>
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(breakage)}
+              </td>
+            </tr>
+
           </tbody>
         </table>
 
-        <footer className="payslip-footer">
-          <div className="payslip-confidential">
-            SYSTEM-GENERATED: CONFIDENTIAL. FOR INTENDED RECIPIENT
-            <br />
-            ONLY. DO NOT SHARE WITHOUT WRITTEN CONSENT.
-          </div>
+        {/* AMOUNT WITH PAYNTHRA */}
 
-          <div className="payslip-reference">
-            Ref:{" "}
-            {report.refNo ||
-              report._id ||
-              report.id ||
-              report.eventId ||
-              "-"}
-          </div>
-        </footer>
-      </main>
+        <table className="payslip-table">
 
-      <div className="report-bottom-actions no-print">
-        <Link to="/admin" className="report-back-link">
-          Back to Report History
-        </Link>
+          <thead>
+            <tr>
+              <th colSpan="2" className="section-heading">
+                AMOUNT WITH PayNthra
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td className="report-label">
+                CARD
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(card)}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="report-label">
+                CASH (HANDOVER)
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(cash)}
+              </td>
+            </tr>
+
+            {Number(coverAmount) > 0 && (
+              <tr>
+                <td className="report-label">
+                  COVER (HANDOVER)
+                </td>
+
+                <td className="report-amount">
+                  {formatMoney(coverAmount)}
+                </td>
+              </tr>
+            )}
+
+            <tr>
+              <td className="report-label">
+                UPI
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(upi)}
+              </td>
+            </tr>
+
+            {Number(updateAmount) > 0 && (
+              <tr>
+                <td className="report-label">
+                  UPDATE AMOUNT
+                </td>
+
+                <td className="report-amount">
+                  {formatMoney(updateAmount)}
+                </td>
+              </tr>
+            )}
+
+            {/* SUB TOTAL */}
+
+            <tr className="bold-row">
+              <td className="report-label">
+                SUB TOTAL
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(paymentsTotal)}
+              </td>
+            </tr>
+
+            {/* TOTAL */}
+
+            <tr className="bold-row">
+              <td className="report-label">
+                TOTAL
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(paymentsTotal)}
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+
+        {/* INVOICE */}
+
+        <table className="payslip-table">
+
+          <thead>
+            <tr>
+              <th colSpan="2" className="section-heading">
+                INVOICE
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr>
+            <td className="report-label">
+  LICENCE FEE ({licenceFeeRate ?? 0}%)
+
+  <small
+    style={{
+      fontSize: "8px",
+      fontWeight: "400",
+      marginLeft: "4px",
+    }}
+  >
+    (TOPUPS × {licenceFeeRate ?? 0}%)
+  </small>
+</td>
+
+              <td className="report-amount">
+                {formatMoney(licenceFee)}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="report-label">
+                ACTIVATIONS ({activations ?? 0} × ₹
+                {Number(activationRate ?? 0).toLocaleString("en-IN")})
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(activationAmount)}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="report-label">
+                MANPOWER ({manPower ?? 0} × ₹
+                {Number(manpowerRate ?? 0).toLocaleString("en-IN")})
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(manpowerAmount)}
+              </td>
+            </tr>
+
+            <tr className="bold-row">
+              <td className="report-label">
+                SUB TOTAL
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(subTotal)}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="report-label">
+                GST ({gstRate ?? 18}%)
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(gst)}
+              </td>
+            </tr>
+
+            <tr className="bold-row">
+              <td className="report-label">
+                TOTAL
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(invoiceTotal)}
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+
+        {/* PAYABLE */}
+
+        <table className="payslip-table">
+
+          <tbody>
+
+            <tr className="payable-row">
+
+              <td className="report-label">
+                PAYABLE
+              </td>
+
+              <td className="report-amount">
+                {formatMoney(payable)}
+              </td>
+
+            </tr>
+
+          </tbody>
+        </table>
+
+        {/* FOOTER */}
+
+        <div className="payslip-footer">
+
+          <p className="payslip-confidential">
+            This report is confidential and intended
+            for authorized use only.
+          </p>
+
+          <p className="payslip-reference">
+            Ref: {refNo || "-"}
+          </p>
+
+          <p className="payslip-reference">
+            Downloaded: {formatDateTime(downloadDateTime)}
+          </p>
+
+        </div>
+
       </div>
+
     </div>
   );
 }

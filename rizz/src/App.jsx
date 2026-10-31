@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import AddClub from "./pages/AddClub";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
+import  Admin from "./pages/Admin";
 import Report from "./pages/Report";
 import api from "./api";
 

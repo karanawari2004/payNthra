@@ -1,6 +1,6 @@
 const Club = require("../model/Club");
 
-// ================= CREATE CLUB =================
+
 exports.createClub = async (req, res) => {
   try {
     const {
@@ -11,7 +11,7 @@ exports.createClub = async (req, res) => {
       gstRate,
     } = req.body;
 
-    // Check required fields
+    
     if (
       typeof clubName !== "string" ||
       !clubName.trim() ||
@@ -31,7 +31,7 @@ exports.createClub = async (req, res) => {
     const manpower = Number(manPowerRate);
     const gst = Number(gstRate);
 
-    // Validate numbers
+    
     if (
       [licence, activation, manpower, gst].some(
         (value) => !Number.isFinite(value) || value < 0
@@ -91,7 +91,7 @@ exports.createClub = async (req, res) => {
 };
 
 
-// ================= GET ALL CLUBS =================
+
 exports.getAllClubs = async (req, res) => {
   try {
     const clubs = await Club.find().sort({ createdAt: -1 });
@@ -112,7 +112,7 @@ exports.getAllClubs = async (req, res) => {
 };
 
 
-// ================= UPDATE CLUB =================
+
 exports.updateClub = async (req, res) => {
   try {
     const { id } = req.params;
@@ -125,7 +125,7 @@ exports.updateClub = async (req, res) => {
       gstRate,
     } = req.body;
 
-    // Validate MongoDB ID
+    
     if (!/^[0-9a-fA-F]{24}$/.test(id)) {
       return res.status(400).json({
         success: false,
@@ -133,7 +133,7 @@ exports.updateClub = async (req, res) => {
       });
     }
 
-    // Validate required fields
+    
     if (
       typeof clubName !== "string" ||
       !clubName.trim() ||
@@ -153,7 +153,7 @@ exports.updateClub = async (req, res) => {
     const manpower = Number(manPowerRate);
     const gst = Number(gstRate);
 
-    // Validate numbers
+    
     if (
       [licence, activation, manpower, gst].some(
         (value) => !Number.isFinite(value) || value < 0
@@ -172,7 +172,7 @@ exports.updateClub = async (req, res) => {
       });
     }
 
-    // Find and update club
+    
     const updatedClub = await Club.findByIdAndUpdate(
       id,
       {
@@ -230,12 +230,12 @@ exports.updateClub = async (req, res) => {
 };
 
 
-// ================= DELETE CLUB =================
+
 exports.deleteClub = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate MongoDB ID
+    
     if (!/^[0-9a-fA-F]{24}$/.test(id)) {
       return res.status(400).json({
         success: false,
