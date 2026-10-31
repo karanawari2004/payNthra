@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-baseURL: "https://pay-nthra-tck6.vercel.app/api",
+baseURL: "https://paynthra-3.onrender.com/api",
 withCredentials: true,
 });
 
