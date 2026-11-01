@@ -94,10 +94,9 @@ function calculateReport(data) {
   const breakage = roundMoney(
     topups - sales - breakageActivationAmount
   );
-
-  const licenceFee = roundMoney(
-    topups * (licenceFeeRate / 100)
-  );
+const licenceFee = roundMoney(
+  topups * licenceFeeRate
+);
 
   const paymentsTotal = roundMoney(
     card + upi + updateAmount
