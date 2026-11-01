@@ -33,8 +33,6 @@ function getNumber(data, ...keys) {
   return 0;
 }
 
-
-
 function calculateReport(data) {
   const topups = getNumber(data, "topups", "topUps");
   const sales = getNumber(data, "sales");
@@ -69,49 +67,55 @@ function calculateReport(data) {
     ? getNumber(data, "gstRate")
     : 18;
 
-  
+  // Original activation amount - no change
   const activationAmount = roundMoney(
     activations * activationRate
   );
 
-  
   const manpowerAmount = roundMoney(
     manPower * manpowerRate
   );
 
-  
-  const breakage = roundMoney(
-    topups - sales - activationAmount
+  // Breakage-specific activation rate
+  // If activationRate is 84.746, use 100 only for breakage.
+  let breakageActivationRate;
+
+  if (Math.abs(activationRate - 84.746) < 0.001) {
+    breakageActivationRate = 100;
+  } else {
+    breakageActivationRate = activationRate;
+  }
+
+  const breakageActivationAmount = roundMoney(
+    activations * breakageActivationRate
   );
 
+  // Breakage calculation
+  const breakage = roundMoney(
+    topups - sales - breakageActivationAmount
+  );
 
   const licenceFee = roundMoney(
     topups * (licenceFeeRate / 100)
   );
 
-  
   const paymentsTotal = roundMoney(
     card + upi + updateAmount
   );
 
-  
   const subTotal = roundMoney(
     licenceFee +
     activationAmount +
-    manpowerAmount 
-    
+    manpowerAmount
   );
 
-  
   const gst = roundMoney(
     subTotal * (gstRate / 100)
   );
 
-  
   const invoiceTotal = roundMoney(
     subTotal + gst
   );
-
 
   const payable = roundMoney(
     topups - cash - invoiceTotal - coverAmount
@@ -153,8 +157,6 @@ function calculateReport(data) {
     payable,
   };
 }
-
-
 
 function validateInput(body) {
   if (!body.clubName || !String(body.clubName).trim()) {
@@ -295,8 +297,6 @@ function validateInput(body) {
   return null;
 }
 
-
-
 function prepareReportData(body, refNo = generateRefNo()) {
   const inputData = {
     clubName: String(body.clubName || "").trim(),
@@ -351,8 +351,6 @@ function prepareReportData(body, refNo = generateRefNo()) {
   };
 }
 
-
-
 exports.createAdminData = async (req, res) => {
   try {
     console.log("Received report input:", req.body);
@@ -399,8 +397,6 @@ exports.createAdminData = async (req, res) => {
   }
 };
 
-
-
 exports.getAdminData = async (req, res) => {
   try {
     const reports = await Report.find().sort({
@@ -421,8 +417,6 @@ exports.getAdminData = async (req, res) => {
     });
   }
 };
-
-
 
 exports.getAdminDataById = async (req, res) => {
   try {
@@ -457,8 +451,6 @@ exports.getAdminDataById = async (req, res) => {
     });
   }
 };
-
-
 
 exports.updateAdminData = async (req, res) => {
   try {
@@ -548,14 +540,15 @@ exports.updateAdminData = async (req, res) => {
       existingReport.refNo
     );
 
-   const updatedReport = await Report.findByIdAndUpdate(
-  id,
-  reportData,
-  {
-    returnDocument: "after",
-    runValidators: true,
-  }
-);
+    const updatedReport = await Report.findByIdAndUpdate(
+      id,
+      reportData,
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
+    );
+
     return res.status(200).json({
       success: true,
       message: "Report updated successfully",
@@ -572,8 +565,6 @@ exports.updateAdminData = async (req, res) => {
     });
   }
 };
-
-
 
 exports.deleteAdminData = async (req, res) => {
   try {
@@ -608,6 +599,5 @@ exports.deleteAdminData = async (req, res) => {
     });
   }
 };
-
 
 exports.calculateReport = calculateReport;
