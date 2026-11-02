@@ -15,6 +15,12 @@ function AppRoutes() {
   useEffect(() => {
     let isActive = true;
 
+    const timeoutId = window.setTimeout(() => {
+      if (isActive) {
+        setIsCheckingSession(false);
+      }
+    }, 4000);
+
     api
       .get("/session")
       .then(({ data }) => {
@@ -28,6 +34,7 @@ function AppRoutes() {
         }
       })
       .finally(() => {
+        window.clearTimeout(timeoutId);
         if (isActive) {
           setIsCheckingSession(false);
         }
@@ -35,6 +42,7 @@ function AppRoutes() {
 
     return () => {
       isActive = false;
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
